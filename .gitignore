@@ -1,0 +1,15 @@
+# Python bytecode
+**/__pycache__/
+*.py[cod]
+
+# Environments (if you use venv)
+.venv/
+env/
+venv/
+
+# API Keys and Secrets
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
