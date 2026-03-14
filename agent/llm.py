@@ -15,7 +15,7 @@ load_dotenv()
 # #
 class LLMClient:
     def __init__(self):
-        self.client = InferenceClient(model="meta-llama/Llama-3.1-8B-Instruct" ,api_key=os.getenv("HF_TK"))
+        self.client = InferenceClient(model="openai/gpt-oss-120b" ,api_key=os.getenv("HF_TK"))
         # self.memory = ConversationMemory(system_prompt)
         print("Agent Created")
     
@@ -29,6 +29,9 @@ class LLMClient:
             max_tokens=300
         )
         reply = response.choices[0].message.content
+        if reply is None:
+            # Fallback if the HuggingFace Llama 3 API returns a weird payload without content
+            reply = "I successfully processed the results internally, but failed to articulate the text due to payload constraints."
         
         # we now structure this response into a beautiful reply.
 

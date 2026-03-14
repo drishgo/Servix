@@ -1,6 +1,6 @@
 import datetime
 
-def currentTime():
+def Time():
     # .now() gets the current local date and time
     now = datetime.datetime.now()
     

@@ -1,2 +1,0 @@
-def exitAgent():
-    return "goodbye"

@@ -20,14 +20,10 @@ class Agent:
         tool_result = execute_tool(output,self.tools)
         
         if tool_result is not None:
-            if tool_result == "goodbye":
-                return "goodbye"
-            
-            # As per your preference: Directly return the tool's explicit output
-            # instead of asking the LLM to rewrite it.
-            tool_output_str = str(tool_result)
-            self.memory.add("assistant", f"Tool Output: {tool_output_str}")
-            return f"{tool_result}" # Returning explicit tool result directly.
+            tool_message = f"this is the output of the tool: {tool_result}, process and structure it in a beautiful way"
+            self.memory.add("user", tool_message)
+            tool_response = self.client.generate(self.memory.get())
+            self.memory.add("assistant", tool_response or "")
+            return tool_response if tool_response is not None else "Tool execution completed, but I encountered an error formulating a response."
 
-        return output
-
+        return output if output is not None else "I encountered an error understanding that request."

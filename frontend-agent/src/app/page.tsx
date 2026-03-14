@@ -1,344 +1,187 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Sparkles, Paperclip, FileText, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowRight, Sparkles, Terminal, Activity, Zap, Shield, Cpu } from "lucide-react";
 
-type Message = {
-  id: string;
-  role: "user" | "agent";
-  content: string;
-};
-
-export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "init",
-      role: "agent",
-      content: "Hello! I am your AI agent. How can I assist you today?",
-    },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+export default function LandingPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if ((!input.trim() && !attachedFile) || isLoading) return;
-
-    let messageContent = input.trim();
-    if (attachedFile) {
-      messageContent += messageContent ? `\n[Attached File: ${attachedFile.name}]` : `[Attached File: ${attachedFile.name}]`;
-    }
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: messageContent,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setAttachedFile(null);
-    setIsLoading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("request_Message", messageContent); // Match backend Form name
-      if (attachedFile) {
-        formData.append("request_file", attachedFile); // Match backend File name
-      }
-
-      // Use the current hostname so it works from both localhost and your phone's network IP!
-      const apiUrl = `http://${window.location.hostname}:8000/chat`;
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        // Note: Do NOT set Content-Type header manually when using FormData
-        // The browser will automatically set it to multipart/form-data with the correct boundary
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to communicate with the agent");
-      }
-
-      const data = await response.json();
-
-      const agentMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "agent",
-        content: data.response,
-      };
-
-      setMessages((prev) => [...prev, agentMessage]);
-    } catch (error) {
-      console.error("Error communicating with agent:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "agent",
-        content: "Sorry, I encountered an error. Please try again or check if the server is running.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setIsLoaded(true);
+  }, []);
 
   return (
-    <main className="h-screen w-full flex flex-col md:flex-row bg-[#000000] overflow-hidden font-sans text-white relative">
-      {/* Left Action Panel - Safety Yellow */}
-      <aside
-        className={`${isSidebarOpen ? "w-full md:w-[30%] border-r-4 p-6 md:p-8" : "w-0 border-r-0 p-0"
-          } bg-[#E2FF00] text-black flex flex-col justify-between border-b-4 md:border-b-0 border-black relative z-20 transition-all duration-300 ease-in-out`}
-      >
-        {/* Subtle Architectural Grid Background */}
-        <div
-          className="absolute inset-0 opacity-10 pointer-events-none transition-opacity duration-300"
-          style={{
-            backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
-            opacity: isSidebarOpen ? 0.1 : 0
-          }}
-        />
+    <div className="min-h-screen bg-black text-[#E2FF00] font-sans selection:bg-[#E2FF00] selection:text-black overflow-x-hidden">
+      {/* Grid Background */}
+      <div
+        className="fixed inset-0 opacity-20 pointer-events-none z-0"
+        style={{
+          backgroundImage: `linear-gradient(#E2FF00 1px, transparent 1px), linear-gradient(90deg, #E2FF00 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
+        }}
+      />
 
-        <div className={`relative z-10 transition-opacity duration-200 whitespace-nowrap overflow-hidden ${isSidebarOpen ? "opacity-100 delay-100" : "opacity-0"}`}>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="flex items-center justify-center w-12 h-12 bg-black text-[#E2FF00] shadow-[2px_2px_0px_#000000] border-2 border-black shrink-0">
-              <Sparkles className="w-6 h-6" />
+      {/* Navbar */}
+      <nav className="relative z-50 w-full border-b-4 border-black bg-[#E2FF00] text-black">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-black flex items-center justify-center border-2 border-black rotate-3 hover:-rotate-3 transition-transform">
+              <Sparkles className="w-6 h-6 text-[#E2FF00]" />
             </div>
-            <div>
-              <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none text-black">
-                SERVIX
-              </h1>
-              <p className="text-sm font-bold tracking-widest uppercase mt-1">AI SYS. // V1.0</p>
+            <span className="text-3xl font-black tracking-tighter uppercase italic">SERVIX</span>
+          </div>
+          <div className="hidden md:flex gap-8 font-bold uppercase tracking-widest text-sm">
+            <a href="https://github.com/drishgo/Servix" className="hover:underline underline-offset-8">Docs</a>
+            <a href="#pricing" className="hover:underline underline-offset-8">Pricing</a>
+            <a href="#contact" className="hover:underline underline-offset-8">Contact Us</a>
+          </div>
+          <Link href="/chat">
+            <button className="bg-black text-[#E2FF00] px-6 py-3 font-bold uppercase tracking-widest border-2 border-black hover:bg-white hover:text-black transition-colors shadow-[4px_4px_0px_rgba(0,0,0,0.5)] active:translate-y-1 active:translate-x-1 active:shadow-none">
+              Launch App
+            </button>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="relative z-10 w-full pt-20 pb-32 px-6 min-h-[85vh] flex items-center">
+        <div className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center gap-12">
+          {/* Left / Typography */}
+          <div className={`flex-1 space-y-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+            <div className="inline-block bg-[#E2FF00] text-black px-4 py-1 text-sm font-bold uppercase tracking-widest border-2 border-black -rotate-2 hover:rotate-2 transition-transform cursor-default">
+              v1.0.0 Protocol Alpha
+            </div>
+
+            <h1 className="text-7xl md:text-8xl lg:text-9xl font-black uppercase italic leading-[0.85] tracking-tighter">
+              Engineered<br />
+              <span className="text-transparent" style={{ WebkitTextStroke: '2px #E2FF00' }}>For</span><br />
+              Excellence.
+            </h1>
+
+            <p className="text-xl md:text-2xl font-medium max-w-xl text-white/90 border-l-4 border-[#E2FF00] pl-6 py-2">
+              The next-generation autonomous AI system built for relentless execution and uncompromising precision.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-6 pt-4">
+              <Link href="/chat" className="group">
+                <button className="w-full sm:w-auto bg-[#E2FF00] text-black px-10 py-5 text-lg font-black uppercase tracking-widest border-4 border-black hover:bg-white transition-all shadow-[8px_8px_0px_#ffffff] hover:shadow-[12px_12px_0px_#ffffff] group-active:translate-y-2 group-active:translate-x-2 group-active:shadow-none flex items-center justify-center gap-4">
+                  Initialize System
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                </button>
+              </Link>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-black text-[#E2FF00] p-4 border-2 border-black shadow-[2px_2px_0px_#000000]">
-              <h3 className="font-bold uppercase text-xs tracking-widest mb-1 opacity-80">System Status</h3>
-              <p className="font-black text-xl uppercase">Online / Ready</p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`relative z-10 mt-8 md:mt-0 whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isSidebarOpen ? "opacity-100 delay-100" : "opacity-0"}`}>
-          <p className="text-xs font-bold uppercase tracking-widest opacity-60">
-            ENGINEERED FOR EXCELLENCE // PROTOCOL ALPHA
-          </p>
-        </div>
-      </aside>
-
-      {/* Sidebar Toggle Button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center w-6 h-12 bg-black border-2 border-white text-white hover:bg-[#E2FF00] hover:text-black hover:border-black transition-colors focus:outline-none hidden md:flex"
-        style={{ left: isSidebarOpen ? 'calc(30% - 12px)' : '-2px' }}
-        aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-      >
-        {isSidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4 ml-1" />}
-      </button>
-
-      {/* Right Chat Area - Jet Black */}
-      <section className="flex-1 w-full bg-[#000000] relative overflow-hidden flex flex-col transition-all duration-300 ease-in-out">
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 scroll-smooth custom-scrollbar w-full max-w-4xl mx-auto"
-        >
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex gap-4 ${message.role === "user" ? "flex-row-reverse" : "flex-row"
-                } animate-in fade-in duration-200`}
-            >
-              <div
-                className={`flex items-center justify-center flex-shrink-0 w-10 h-10 border-2 border-white ${message.role === "user"
-                  ? "bg-[#E2FF00] text-black border-[#E2FF00]" // Safety Yellow for User Icon
-                  : "bg-black text-white" // Black for Agent Icon
-                  }`}
-              >
-                {message.role === "user" ? (
-                  <User className="w-5 h-5" />
-                ) : (
-                  <Bot className="w-5 h-5" />
-                )}
-              </div>
-
-              <div
-                className={`max-w-[85%] px-5 py-3.5 text-[15px] leading-relaxed border-2 ${message.role === "user"
-                    ? "bg-[#E2FF00] text-black border-[#E2FF00] shadow-[2px_2px_0px_#ffffff]" // User Bubble
-                    : "bg-[#111111] text-white border-white shadow-[2px_2px_0px_#ffffff] markdown-body" // Agent Bubble
-                  }`}
-              >
-                {message.role === "user" ? (
-                  message.content.split('\n').map((line, i) => (
-                    <span key={i} className="block min-h-[1.25rem] font-medium">{line}</span>
-                  ))
-                ) : (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code({ node, inline, className, children, ...props }: any) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return !inline && match ? (
-                          <div className="my-4 border-2 border-[#E2FF00] shadow-[2px_2px_0px_#E2FF00]">
-                            <div className="bg-[#E2FF00] px-4 py-1.5 text-xs text-black font-mono font-bold uppercase tracking-wider flex items-center justify-between border-b-2 border-black">
-                              <span>{match[1]}</span>
-                            </div>
-                            <SyntaxHighlighter
-                              {...props}
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              className="!mt-0 !mb-0 !rounded-none !bg-black text-sm"
-                              customStyle={{ margin: 0, padding: '1rem', background: '#000' }}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          </div>
-                        ) : (
-                          <code {...props} className="bg-[#E2FF00] text-black px-1.5 py-0.5 text-sm font-mono font-bold">
-                            {children}
-                          </code>
-                        );
-                      },
-                      p: ({ children }) => <p className="mb-4 last:mb-0 leading-relaxed font-medium">{children}</p>,
-                      ul: ({ children }) => <ul className="list-square pl-6 mb-4 space-y-2 font-medium marker:text-[#E2FF00]">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal pl-6 mb-4 space-y-2 font-medium marker:text-[#E2FF00] font-bold">{children}</ol>,
-                      li: ({ children }) => <li className="pl-2">{children}</li>,
-                      h1: ({ children }) => <h1 className="text-2xl font-black uppercase italic mb-4 mt-6 text-[#E2FF00] border-b-2 border-[#E2FF00] pb-2">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-xl font-black uppercase italic mb-3 mt-5 text-white">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-lg font-bold uppercase mb-2 mt-4 text-[#E2FF00]">{children}</h3>,
-                      a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-[#E2FF00] hover:bg-[#E2FF00] hover:text-black font-bold underline underline-offset-4 transition-colors px-1">{children}</a>,
-                      strong: ({ children }) => <strong className="font-black text-[#E2FF00] tracking-wide">{children}</strong>,
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {isLoading && (
-            <div className="flex gap-4 flex-row animate-in fade-in duration-200">
-              <div className="flex items-center justify-center flex-shrink-0 w-10 h-10 border-2 border-white bg-black text-white">
-                <Bot className="w-5 h-5" />
-              </div>
-              <div className="flex items-center gap-2 max-w-[80%] px-5 py-4 border-2 border-white bg-[#111111] shadow-[2px_2px_0px_#ffffff]">
-                <span className="w-2.5 h-2.5 bg-[#E2FF00] animate-pulse" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2.5 h-2.5 bg-[#E2FF00] animate-pulse" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2.5 h-2.5 bg-[#E2FF00] animate-pulse" style={{ animationDelay: '300ms' }}></span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input Area - Brutalist Box */}
-        <footer className="w-full bg-black p-4 sm:p-6 md:p-8 z-10 border-t-2 border-white">
-          <div className="max-w-4xl mx-auto w-full relative">
-            <form
-              onSubmit={handleSend}
-              className="flex flex-col w-full bg-black border-2 border-white shadow-[2px_2px_0px_#E2FF00] focus-within:shadow-[4px_4px_0px_#E2FF00] transition-all duration-200"
-            >
-              <div className="flex w-full items-center p-1">
-                <input
-                  type="file"
-                  hidden
-                  accept=".pdf,.doc,.docx,.txt"
-                  ref={fileInputRef}
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setAttachedFile(e.target.files[0]);
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-12 w-12 rounded-none text-white hover:text-black hover:bg-[#E2FF00] transition-colors shrink-0"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="w-5 h-5" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
-                <Input
-                  type="text"
-                  placeholder="ENTER COMMAND..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="flex-1 rounded-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-gray-500 placeholder:font-bold placeholder:tracking-widest font-mono text-base px-2 h-12"
-                  disabled={isLoading}
-                  autoFocus
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={(!input.trim() && !attachedFile) || isLoading}
-                  className="h-12 w-12 rounded-none bg-[#E2FF00] hover:bg-white text-black transition-colors disabled:opacity-50 shrink-0 border-l-2 border-white"
-                >
-                  <Send className="w-5 h-5" />
-                  <span className="sr-only">Send message</span>
-                </Button>
-              </div>
-
-              {attachedFile && (
-                <div className="flex items-center justify-between bg-[#111111] border-t-2 border-white p-2">
-                  <div className="flex items-center space-x-3 overflow-hidden pl-2">
-                    <FileText className="w-4 h-4 text-[#E2FF00] shrink-0" />
-                    <span className="text-sm text-white font-mono font-bold truncate">{attachedFile.name}</span>
+          {/* Right / Visual Element */}
+          <div className={`flex-1 w-full relative transition-all duration-1000 delay-300 ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
+            <div className="w-full aspect-square max-w-lg mx-auto relative group perspective-1000">
+              <div className="absolute inset-0 bg-[#E2FF00] border-4 border-black rotate-6 group-hover:rotate-12 transition-transform duration-500 ease-out z-0"></div>
+              <div className="absolute inset-0 bg-[#111] border-4 border-[#E2FF00] z-10 flex flex-col p-8 justify-between shadow-[16px_16px_0px_#E2FF00] group-hover:-translate-y-4 group-hover:-translate-x-4 transition-transform duration-500">
+                <div className="flex justify-between items-start">
+                  <Terminal className="w-12 h-12 text-[#E2FF00]" />
+                  <div className="flex gap-2">
+                    <span className="w-3 h-3 rounded-full bg-[#E2FF00] animate-pulse"></span>
+                    <span className="w-3 h-3 rounded-full bg-white animate-pulse" style={{ animationDelay: '150ms' }}></span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAttachedFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                    className="text-white hover:text-black hover:bg-[#E2FF00] transition-colors shrink-0 p-2"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
                 </div>
-              )}
-            </form>
-          </div>
-        </footer>
 
-        {/* Brutalist scrollbar styles */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 12px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: #000;
-            border-left: 2px solid #333;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #E2FF00;
-            border: 2px solid #000;
-          }
-          .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-            background-color: #fff;
-          }
-        `}} />
+                <div className="space-y-4 font-mono">
+                  <p className="text-[#E2FF00] opacity-80 text-sm">{'> SYSTEM BOOT SEQUENCE INITIATED'}</p>
+                  <p className="text-white text-sm">{'> LOADING CORE MODULES... [OK]'}</p>
+                  <p className="text-white text-sm">{'> NEURAL NETWORKS SYNC... [OK]'}</p>
+                  <p className="text-white text-sm">{'> ESTABLISHING UPLINK... [OK]'}</p>
+                  <p className="text-[#E2FF00] text-xl font-bold mt-4 animate-pulse">{'> READY FOR INPUT_'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Scrolling Marquee */}
+      <div className="w-full bg-[#E2FF00] border-y-4 border-black py-6 overflow-hidden z-20 relative flex text-black">
+        <div className="flex whitespace-nowrap animate-[marquee_15s_linear_infinite] font-black uppercase tracking-tighter text-4xl italic">
+          <span className="mx-8">SERVIX AUTONOMOUS AGENT</span>
+          <Activity className="w-10 h-10 inline mx-4 border-2 border-black rounded-full p-1" />
+          <span className="mx-8">MAXIMUM EFFICIENCY</span>
+          <Activity className="w-10 h-10 inline mx-4 border-2 border-black rounded-full p-1" />
+          <span className="mx-8">ZERO COMPROMISE</span>
+          <Activity className="w-10 h-10 inline mx-4 border-2 border-black rounded-full p-1" />
+          <span className="mx-8">SERVIX AUTONOMOUS AGENT</span>
+          <Activity className="w-10 h-10 inline mx-4 border-2 border-black rounded-full p-1" />
+          <span className="mx-8">MAXIMUM EFFICIENCY</span>
+          <Activity className="w-10 h-10 inline mx-4 border-2 border-black rounded-full p-1" />
+          <span className="mx-8">ZERO COMPROMISE</span>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <section id="features" className="w-full py-32 px-6 bg-black relative z-10">
+        <div className="max-w-7xl mx-auto space-y-20">
+          <div className="text-center space-y-6">
+            <h2 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter bg-[#E2FF00] text-black inline-block px-8 py-4 border-4 border-black rotate-1 hover:-rotate-1 transition-transform">
+              Core Modules
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-[#111] p-10 border-4 border-black hover:border-[#E2FF00] hover:bg-[#E2FF00] hover:text-black group transition-all duration-300 shadow-[8px_8px_0px_#E2FF00] hover:shadow-[16px_16px_0px_#ffffff] hover:-translate-y-2">
+              <Zap className="w-16 h-16 text-[#E2FF00] group-hover:text-black mb-8" />
+              <h3 className="text-3xl font-black uppercase italic mb-4">Hyper Speed</h3>
+              <p className="font-medium text-lg leading-relaxed opacity-80 group-hover:opacity-100">
+                Optimized execution pipelines delivering responses with unparalleled velocity.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-[#111] p-10 border-4 border-black hover:border-[#E2FF00] hover:bg-[#E2FF00] hover:text-black group transition-all duration-300 shadow-[8px_8px_0px_#E2FF00] hover:shadow-[16px_16px_0px_#ffffff] translate-y-0 md:translate-y-12 hover:md:translate-y-8">
+              <Cpu className="w-16 h-16 text-[#E2FF00] group-hover:text-black mb-8" />
+              <h3 className="text-3xl font-black uppercase italic mb-4">Advanced AI</h3>
+              <p className="font-medium text-lg leading-relaxed opacity-80 group-hover:opacity-100">
+                Powered by state-of-the-art language models with complex sequential reasoning.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-[#111] p-10 border-4 border-black hover:border-[#E2FF00] hover:bg-[#E2FF00] hover:text-black group transition-all duration-300 shadow-[8px_8px_0px_#E2FF00] hover:shadow-[16px_16px_0px_#ffffff] hover:-translate-y-2">
+              <Shield className="w-16 h-16 text-[#E2FF00] group-hover:text-black mb-8" />
+              <h3 className="text-3xl font-black uppercase italic mb-4">Secure Core</h3>
+              <p className="font-medium text-lg leading-relaxed opacity-80 group-hover:opacity-100">
+                Enterprise-grade security paradigms protecting your data and instructions.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
-    </main>
+
+      {/* Footer */}
+      <footer className="w-full bg-black border-t-8 border-[#E2FF00] py-16 px-6 relative z-10 text-white">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-4">
+            <Sparkles className="w-10 h-10 text-[#E2FF00]" />
+            <span className="text-5xl font-black tracking-tighter uppercase italic text-[#E2FF00]">SERVIX</span>
+          </div>
+          <div className="text-center font-bold tracking-widest text-sm uppercase opacity-50">
+            © {new Date().getFullYear()} SERVIX AI SYSTEMS. All Rights Reserved.
+          </div>
+          <div className="flex gap-6">
+            <span className="w-3 h-3 bg-[#E2FF00] border border-black shadow-[2px_2px_0px_#fff]"></span>
+            <span className="w-3 h-3 bg-white border border-black shadow-[2px_2px_0px_#E2FF00]"></span>
+            <span className="w-3 h-3 bg-[#E2FF00] border border-black shadow-[2px_2px_0px_#fff]"></span>
+          </div>
+        </div>
+      </footer>
+
+      {/* Keyframes injection for marquee since we are not directly modifying tailwind.config */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes marquee {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+      `}} />
+    </div>
   );
 }
