@@ -16,22 +16,18 @@ type Message = {
 };
 
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "init",
-      role: "agent",
-      content: "Hello! I am your AI agent. How can I assist you today?",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const isNewChat = messages.length === 0;
 
   useEffect(() => {
-    // Close sidebar by default on mobile screens after hydration
+    // Ensure it's closed on mobile, though now default is false anyway
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
@@ -226,7 +222,7 @@ export default function ChatInterface() {
 
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 scroll-smooth custom-scrollbar w-full max-w-4xl mx-auto"
+          className={`flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-32 md:pb-40 space-y-6 scroll-smooth custom-scrollbar w-full max-w-4xl mx-auto transition-opacity duration-700 ${isNewChat ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           {messages.map((message) => (
             <div
@@ -318,76 +314,92 @@ export default function ChatInterface() {
         </div>
 
         {/* Input Area - Brutalist Box */}
-        <footer className="w-full bg-black p-4 sm:p-6 md:p-8 z-10 border-t-2 border-white">
-          <div className="max-w-4xl mx-auto w-full relative">
-            <form
-              onSubmit={handleSend}
-              className="flex flex-col w-full bg-black border-2 border-white shadow-[2px_2px_0px_#E2FF00] focus-within:shadow-[4px_4px_0px_#E2FF00] transition-all duration-200"
-            >
-              <div className="flex w-full items-center p-1">
-                <input
-                  type="file"
-                  hidden
-                  accept=".pdf,.doc,.docx,.txt"
-                  ref={fileInputRef}
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setAttachedFile(e.target.files[0]);
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-12 w-12 rounded-none text-white hover:text-black hover:bg-[#E2FF00] transition-colors shrink-0"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="w-5 h-5" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
-                <Input
-                  type="text"
-                  placeholder="ENTER COMMAND..."
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  className="flex-1 rounded-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-gray-500 placeholder:font-bold placeholder:tracking-widest font-mono text-base px-2 h-12"
-                  disabled={isLoading}
-                  autoFocus
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={(!input.trim() && !attachedFile) || isLoading}
-                  className="h-12 w-12 rounded-none bg-[#E2FF00] hover:bg-white text-black transition-colors disabled:opacity-50 shrink-0 border-l-2 border-white"
-                >
-                  <Send className="w-5 h-5" />
-                  <span className="sr-only">Send message</span>
-                </Button>
-              </div>
-
-              {attachedFile && (
-                <div className="flex items-center justify-between bg-[#111111] border-t-2 border-white p-2">
-                  <div className="flex items-center space-x-3 overflow-hidden pl-2">
-                    <FileText className="w-4 h-4 text-[#E2FF00] shrink-0" />
-                    <span className="text-sm text-white font-mono font-bold truncate">{attachedFile.name}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAttachedFile(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
-                    className="text-white hover:text-black hover:bg-[#E2FF00] transition-colors shrink-0 p-2"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </form>
+        <div
+          className="w-full absolute left-0 transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] z-10 flex flex-col items-center"
+          style={{
+            bottom: isNewChat ? "50%" : "0%",
+            transform: isNewChat ? "translateY(50%)" : "translateY(0%)"
+          }}
+        >
+          <div className="max-w-4xl mx-auto w-full relative px-4 sm:px-6 md:px-8">
+            <div className={`transition-all duration-700 text-center flex flex-col items-center justify-center ${isNewChat ? 'opacity-100 translate-y-0 mb-8 h-auto' : 'opacity-0 translate-y-4 h-0 mb-0 overflow-hidden'}`}>
+              <h2 className="text-4xl md:text-5xl lg:text-7xl font-black uppercase italic tracking-tighter text-[#E2FF00]">
+                What's on your mind?
+              </h2>
+            </div>
           </div>
-        </footer>
+
+          <footer className={`w-full bg-black p-4 sm:p-6 md:p-8 transition-colors duration-700 ${!isNewChat ? 'border-t-2 border-white' : 'bg-transparent'}`}>
+            <div className="max-w-4xl mx-auto w-full relative">
+              <form
+                onSubmit={handleSend}
+                className="flex flex-col w-full bg-black border-2 border-white shadow-[2px_2px_0px_#E2FF00] focus-within:shadow-[4px_4px_0px_#E2FF00] transition-all duration-200"
+              >
+                <div className="flex w-full items-center p-1">
+                  <input
+                    type="file"
+                    hidden
+                    accept=".pdf,.doc,.docx,.txt"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setAttachedFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-12 w-12 rounded-none text-white hover:text-black hover:bg-[#E2FF00] transition-colors shrink-0"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="w-5 h-5" />
+                    <span className="sr-only">Attach file</span>
+                  </Button>
+                  <Input
+                    type="text"
+                    placeholder="ENTER COMMAND..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    className="flex-1 rounded-none bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-white placeholder:text-gray-500 placeholder:font-bold placeholder:tracking-widest font-mono text-base px-2 h-12"
+                    disabled={isLoading}
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={(!input.trim() && !attachedFile) || isLoading}
+                    className="h-12 w-12 rounded-none bg-[#E2FF00] hover:bg-white text-black transition-colors disabled:opacity-50 shrink-0 border-l-2 border-white"
+                  >
+                    <Send className="w-5 h-5" />
+                    <span className="sr-only">Send message</span>
+                  </Button>
+                </div>
+
+                {attachedFile && (
+                  <div className="flex items-center justify-between bg-[#111111] border-t-2 border-white p-2">
+                    <div className="flex items-center space-x-3 overflow-hidden pl-2">
+                      <FileText className="w-4 h-4 text-[#E2FF00] shrink-0" />
+                      <span className="text-sm text-white font-mono font-bold truncate">{attachedFile.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAttachedFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="text-white hover:text-black hover:bg-[#E2FF00] transition-colors shrink-0 p-2"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </form>
+            </div>
+          </footer>
+        </div>
 
         {/* Brutalist scrollbar styles */}
         <style dangerouslySetInnerHTML={{
