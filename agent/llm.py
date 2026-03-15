@@ -15,7 +15,7 @@ load_dotenv()
 # #
 class LLMClient:
     def __init__(self):
-        self.client = InferenceClient(model="openai/gpt-oss-120b" ,api_key=os.getenv("HF_TK"))
+        self.client = InferenceClient(model="meta-llama/Llama-3.3-70B-Instruct" ,api_key=os.getenv("HF_TK"))
         # self.memory = ConversationMemory(system_prompt)
         print("Agent Created")
     
@@ -24,7 +24,7 @@ class LLMClient:
     
         # we now generate a response by thinking.
         response = self.client.chat.completions.create(
-            model = "meta-llama/Llama-3.1-8B-Instruct",
+           
             messages = messages,
             max_tokens=300
         )
